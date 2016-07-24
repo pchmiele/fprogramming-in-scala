@@ -2,15 +2,15 @@ import fpinscala.datastructures._
 import org.scalatest._
 
 class ListSpec extends FlatSpec with Matchers {
-  "Tail" should "return tail of non empty list" in {
+  "tail" should "return List(2,3) for given List(1,2,3)" in {
     List.tail(List(1,2,3)) should be (List(2,3))
   }
 
-  "SetHead" should "change value of head correctly" in {
+  "setHead" should "return List(2,2,3) for given List(1,2,3) and 2" in {
     List.setHead(List(1,2,3), 2) should be (List(2,2,3))
   }
 
-  "Drop" should "skip given number of elements" in {
+  "drop" should "return List(3) for given List(1,2,3) and 2" in {
     List.drop(List(1,2,3), 2) should be (List(3))
   }
 
@@ -18,7 +18,7 @@ class ListSpec extends FlatSpec with Matchers {
     List.drop(Nil, 2) should be (Nil)
   }
 
-  "DropWhile" should "skip elements until given function return false" in {
+  "dropWhile" should "skip elements until given function return false" in {
     List.dropWhile[Int](List(1,2,3), _ < 3) should be (List(3))
   }
 
@@ -26,99 +26,99 @@ class ListSpec extends FlatSpec with Matchers {
     List.dropWhile[Int](Nil, _ < 3) should be (Nil)
   }
 
-  "Init" should "return entire list without last element" in {
+  "init" should "return List(1,2) for given List(1,2,3)" in {
     List.init(List(1,2,3)) should be (List(1,2))
   }
 
-  "Length" should "return correct length of List" in {
+  "length" should "return 3 for given list(1,2,3)" in {
     List.length(List(1,2,3)) should be (3)
   }
 
-  it should "return 0 on empty List" in {
+  it should "return 0 for given Nil" in {
     List.length(Nil) should be (0)
   }
 
-  "lengthWithFoldLeft" should "return correct length of List" in {
+  "lengthWithFoldLeft" should "return 3 for given list(1,2,3)" in {
     List.lengthWithFoldLeft(List(1,2,3)) should be (3)
   }
 
-  it should "return 0 on empty List" in {
+  it should "return 0 for given Nil" in {
     List.lengthWithFoldLeft(Nil) should be (0)
   }
 
-  "SumFoldLeft" should "return sum of all elements of List" in {
+  "sumFoldLeft" should "return 6 for given List(1,2,3)" in {
     List.sumFoldLeft(List(1,2,3)) should be (6)
   }
 
-  "ProductFoldLeft" should "return product of all elements of List" in {
+  "productFoldLeft" should "return 6 for given List(1,2,3)" in {
     List.productFoldLeft(List(1,2,3)) should be (6)
   }
 
-  "Reverse" should "return List with elements in reversed order" in {
+  "reverse" should "return List(3,2,1) for given List(1,2,3)" in {
     List.reverse(List(1,2,3)) should be (List(3,2,1))
   }
 
-  "AppendFoldRight" should "append correctly two lists" in {
+  "appendFoldRight" should "return List(1,2,3,4,5,6) for given List(1,2,3) and List(4,5,6)" in {
     List.appendFoldRight[Int](List(1,2,3), List(4,5,6)) should be (List(1,2,3,4,5,6))
   }
 
-  "Append using foldLeftUsingFoldRight" should "append correctly two lists" in {
+  "Append using foldLeftUsingFoldRight" should "return List(1,2,3,4,5,6) for given List(1,2,3) and List(4,5,6)" in {
     List.foldLeftUsingFoldRight[Int, List[Int]](List(1,2,3), List(4,5,6))((acc, a) => Cons(a, acc)) should be (List(1,2,3,4,5,6))
   }
 
-  "Concat list of lists" should "return single list" in {
+  "concat" should "return List(1,2,3,4,5,6) for given List(List(1,2,3), List(4,5,6))" in {
     List.concat[Int](List(List(1,2,3),List(4,5,6))) should be (List(1,2,3,4,5,6))
   }
 
-  "Add1" should "increment all elements of list by 1" in {
+  "add1" should "return List(2,3,4) for given List(1,2,3)" in {
     List.add1(List(1,2,3)) should be (List(2,3,4))
   }
 
-  "List.fromDoubleToString" should "convert all Double elements into String" in {
+  "List.fromDoubleToString" should "return List(\"1.0\", \"2.0\", \"3.0\") for given List(1.0, 2.0, 3.0)" in {
     List.fromDoubleToString(List(1.0,2.0,3.0)) should be (List("1.0", "2.0", "3.0"))
   }
 
-  "Map" should "apply function to all elements" in {
+  "map" should "return Stream(\"1.0\", \"2.0\", \"3.0\") for given Stream(1.0,2.0,3.0) " in {
     List.map[Double, String](List(1.0,2.0,3.0))((x) => x.toString) should be (List("1.0", "2.0", "3.0"))
   }
 
-  "Filter" should "filter all odd elements from" in {
-    List.filter(List(1,2,3,4,5,6))((x) => x % 2 == 1) should be (List(2,4,6))
+  "filter" should "return Stream(2,4,6) for given Stream(1,2,3,4,5,6)" in {
+    List.filter(List(1,2,3,4,5,6))((x) => x % 2 == 0) should be (List(2,4,6))
   }
 
-  "filterUsingFlatMap" should "filter all odd elements from" in {
-    List.filterUsingFlatMap(List(1,2,3,4,5,6))((x) => x % 2 == 1) should be (List(2,4,6))
+  "filterUsingFlatMap" should "return Stream(2,4,6) for given Stream(1,2,3,4,5,6)"  in {
+    List.filterUsingFlatMap(List(1,2,3,4,5,6))((x) => x % 2 == 0) should be (List(2,4,6))
   }
 
-  "FlatMap" should "should works correctly" in {
+  "flatMap" should "return Stream(1,1,2,2,3,3) for given Stream(1,2,3)" in {
     List.flatMap(List(1,2,3))(i => List(i,i)) should be (List(1,1,2,2,3,3))
   }
 
-  "SumLists" should "should be sum of element of 2 lists" in {
+  "sumLists" should "return List(5,7,9) for given List(1,2,3) and List(4,5,6)" in {
     List.sumLists(List(1,2,3), List(4,5,6)) should be (List(5,7,9))
   }
 
-  "ZipWith" should "should works fine" in {
+  "zipWith" should "return List(5,7,9) for given List(1,2,3) and List(4,5,6)" in {
     List.zipWith(List(1,2,3), List(4,5,6))((a, b) => a + b) should be (List(5,7,9))
   }
 
-  "hasSubsequence" should "return true when looking for empty list" in {
+  "hasSubsequence" should "return true for given list(1,2,3,4,5) and nil" in {
     List.hasSubsequence(List(1,2,3,4,5), Nil) should be (true)
   }
 
-  it should "return true when looking for same list" in {
+  it should "return true for given list(1,2,3,4,5) and List(1,2,3,4,5)" in {
     List.hasSubsequence(List(1,2,3,4,5), List(1,2,3,4,5)) should be (true)
   }
 
-  it should "return true when looking for sublist - ver1" in {
+  it should "return true for given list(1,2,3,4,5) and List(1,2,3)" in {
     List.hasSubsequence(List(1,2,3,4,5), List(1,2,3)) should be (true)
   }
 
-  it should "return true when looking for sublist - ver2" in {
+  it should "return true for given list(1,2,3,4,5) and List(2,3)" in {
     List.hasSubsequence(List(1,2,3,4,5), List(2,3)) should be (true)
   }
 
-  it should "return false when looking for sublist with not existring elements" in {
+  it should "return false for given list(1,2,3,4,5) and List(1,2,3,7)" in {
     List.hasSubsequence(List(1,2,3,4,5), List(1,2,3,7)) should be (false)
   }
 }

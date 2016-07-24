@@ -120,13 +120,13 @@ object List {
     foldRight(l, Nil:List[B])((a, acc) => Cons(f(a), acc))
 
   def filter[A](as: List[A])(f: A => Boolean): List[A] =
-    foldRight(as, Nil:List[A])((a, acc) => if (f(a) == false) Cons(a, acc) else acc )
+    foldRight(as, Nil:List[A])((a, acc) => if (f(a)) Cons(a, acc) else acc )
 
   def flatMap[A,B](as: List[A])(f: A => List[B]): List[B] =
     concat(map(as)(f))
 
   def filterUsingFlatMap[A](as: List[A])(f: A => Boolean): List[A] =
-    flatMap(as)(a => if(f(a)) Nil else List(a))
+    flatMap(as)(a => if(f(a)) List(a) else Nil )
 
   def sumLists(list: List[Int], list1: List[Int]) = {
     @annotation.tailrec
