@@ -123,6 +123,14 @@ trait Stream[+A] {
       case Empty => None
       case Cons(head, tail) => Some(Cons(head, tail), tail())
     } append Stream(empty)
+
+  def scanRight[B](a: B)(f: (A, B) => B): Stream[B] = {
+    this.foldRight((Stream(a), a))((head, rest) => {
+      lazy val (tail, x) = rest
+      val b = f(head, x)
+      (cons(b, tail), b)
+    })._1
+  }
 }
 case object Empty extends Stream[Nothing]
 case class  Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]

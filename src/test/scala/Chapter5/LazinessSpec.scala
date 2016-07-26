@@ -139,4 +139,8 @@ class StreamsSpec extends FlatSpec with Matchers {
   "tails" should "return Stream(Stream(1,2,3), Stream(2,3), Stream(3), Stream()) for given Stream(1,2,3)" in {
     Stream(1,2,3).tails.map(x => x.toList).toList should be (List(List(1,2,3), List(2,3), List(3), List()))
   }
+
+  "scanRight" should "return Stream(6, 5, 3, 0) for given Stream(1,2,3)" in {
+    Stream(1,2,3).scanRight(0)(_ + _ ).toList should be (List(6, 5, 3, 0))
+  }
 }
