@@ -1,5 +1,7 @@
 package Chapter6
 
+import Chapter6.RNG._
+
 import scala.annotation.tailrec
 
 trait RNG {
@@ -96,16 +98,69 @@ object RNG {
   def sequence[A](fs: List[Rand[A]]): Rand[List[A]] =
     fs.foldRight(unit(List[A]()))((f, acc) => map2(f, acc)(_ :: _))
 
-  def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = ???
+  def nonNegativeLessThan(n: Int): Rand[Int] = { rng =>
+    val (i, rng2) = nonNegativeInt(rng)
+    val mod = i  % n
+    if (i + (n-1) - mod >= 0)
+      (mod, rng2)
+    else nonNegativeLessThan(n)(rng2)
+  }
+
+  def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] =
+    rng => {
+      val (value1, rng1) = f(rng)
+      g(value1)(rng1)
+    }
+
+  def nonNegativeLessThanWithFlatMap(n: Int): Rand[Int] =
+    flatMap(nonNegativeInt){ x =>
+      val mod = x  % n
+      if (x + (n-1) - mod >= 0)
+        unit(mod)
+      else nonNegativeLessThanWithFlatMap(n)
+    }
+
+  def mapUsingFlatMap[A,B](s: Rand[A])(f: A => B): Rand[B] =
+    flatMap(s) { a =>
+      unit(f(a))
+    }
+
+  def map2UsingFlatMap[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
+    flatMap(ra){ a =>
+      map(rb) { b =>
+        f(a,b)
+      }
+    }
 }
 
 case class State[S,+A](run: S => (A, S)) {
   def map[B](f: A => B): State[S, B] =
-    sys.error("todo")
+    flatMap(a => State.unit(f(a)))
+
   def map2[B,C](sb: State[S, B])(f: (A, B) => C): State[S, C] =
-    sys.error("todo")
+    flatMap(a => sb.map(f(a, _)))
+
   def flatMap[B](f: A => State[S, B]): State[S, B] =
-    sys.error("todo")
+    State(state => {
+      val (value2, state2) = run(state)
+      f(value2).run(state2)
+    })
+}
+
+object State {
+  def unit[S, A](a: A): State[S, A] = State(s => (a, s))
+
+  def sequence[S,A](l: List[State[S, A]]): State[S, List[A]] =
+    l.reverse.foldLeft(unit[S, List[A]](List()))((acc, f) => f.map2(acc)( _ :: _ ))
+
+  def modify[S](f: S => S): State[S, Unit] = for {
+    s <- get // Gets the current state and assigns it to `s`.
+    _ <- set(f(s)) // Sets the new state to `f` applied to `s`.
+  } yield ()
+
+  def get[S]: State[S, S] = State(s => (s, s))
+
+  def set[S](s: S): State[S, Unit] = State(_ => ((), s))
 }
 
 sealed trait Input
@@ -114,7 +169,22 @@ case object Turn extends Input
 
 case class Machine(locked: Boolean, candies: Int, coins: Int)
 
-object State {
-  type Rand[A] = State[RNG, A]
-  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = ???
+object Candy {
+  import State._
+
+  def update = (i: Input) => (s: Machine) =>
+    (i, s) match {
+      case (_, Machine(_, 0, _)) => s
+      case (Coin, Machine(false, _, _)) => s
+      case (Turn, Machine(true, _, _)) => s
+      case (Coin, Machine(true, candy, coin)) =>
+        Machine(false, candy, coin + 1)
+      case (Turn, Machine(false, candy, coin)) =>
+        Machine(true, candy - 1, coin)
+    }
+
+  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = for {
+    _ <- sequence(inputs map (modify[Machine] _ compose update))
+    s <- get
+  } yield (s.coins, s.candies)
 }

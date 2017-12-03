@@ -36,4 +36,17 @@ class StateSpec extends FlatSpec with Matchers {
   "double3" should "return (0.5360936457291245,0.2558267889544368,0.7510961224325001)" in {
     RNG.double3(rng)._1 should be (0.5360936457291245,0.2558267889544368,0.7510961224325001)
   }
+
+  "nonNegativeLessThan" should "return value >= 0 and less than maximum" in {
+    val result = RNG.nonNegativeLessThan(100)(rng)._1
+    result should be >= 0
+  }
+
+  "nonNegativeLessThan" should "return same value as nonNegativeLessThan" in {
+    val result1 = RNG.nonNegativeLessThan(100)
+    val result2 = RNG.nonNegativeLessThanWithFlatMap(100)
+    result1(rng) should be (result2(rng))
+  }
+
+
 }
