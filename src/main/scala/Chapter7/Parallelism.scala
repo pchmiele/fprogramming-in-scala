@@ -1,14 +1,17 @@
 package Chapter7
 
-import java.util.concurrent.{Callable, ExecutorService, Future, TimeUnit}
+import java.util.concurrent.{Callable, ExecutorService, TimeUnit, Future => JavaFuture}
 
-trait Par[A] {
-  type Par[A] = ExecutorService => Future[A]
+import Chapter7.Nonblocking.Par
+import Chapter7.Nonblocking.Par.run
+
+object Par {
+  type Par[A] = ExecutorService => JavaFuture[A]
 
   def unit[A](a: A): Par[A] =
     _ => UnitFuture(a)
 
-  private case class UnitFuture[A](a: A) extends Future[A] {
+  private case class UnitFuture[A](a: A) extends JavaFuture[A] {
     override def cancel(mayInterruptIfRunning: Boolean): Boolean = false
 
     override def isCancelled: Boolean = false
@@ -38,7 +41,7 @@ trait Par[A] {
       UnitFuture(f(futureA.get, futureB.get))
     }
 
-  def run[A](executorService: ExecutorService)(a: Par[A]): Future[A] = a(executorService)
+  def run[A](executorService: ExecutorService)(a: Par[A]): JavaFuture[A] = a(executorService)
 
   def asyncF[A, B](f: A => B): A => Par[B] =
     a => lazyUnit(f(a))
@@ -68,4 +71,28 @@ trait Par[A] {
   def delay[A](a: => Par[A]): Par[A] =
     es => a(es)
 
+  def choice[A](cond: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] =
+    es =>
+      if(run(es)(cond).get) t(es)
+      else f(es)
+
+  def choiceN[A](cond: Par[Int])(list: List[Par[A]]): Par[A] =
+    es =>
+      list(run(es)(cond).get)(es)
+
+  def flatMap[A,B](p: Par[A])(choices: A => Par[B]): Par[B] =
+    es => {
+      val k = run(es)(p).get
+      run(es)(choices(k))
+    }
+
+  def join[A](ppa: Par[Par[A]]): Par[A] =
+    es =>
+      run(es)(run(es)(ppa).get())
+
+  def joinViaFlatMap[A](a: Par[Par[A]]): Par[A] =
+    flatMap(a)(a => a)
+
+  def flatMapViaJoin[A,B](p: Par[A])(f: A => Par[B]): Par[B] =
+    join(map(p)(f))
 }
