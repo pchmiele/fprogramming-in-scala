@@ -97,6 +97,9 @@ trait Stream[+A] {
     zipWithAll(stream)((_, _))
   }
 
+  def zip[B](stream: Stream[B]): Stream[(A, B)] =
+    zipWith(stream)((_, _))
+
   def zipWithAll[B, C](stream: Stream[B])(f:(Option[A], Option[B]) => C): Stream[C] = {
     unfold((this, stream)){
       case (Empty, Empty) => None
