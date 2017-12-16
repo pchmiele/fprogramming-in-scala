@@ -102,17 +102,6 @@ object Monoids {
     override def zero: WC = Stub("")
   }
 
-  trait Foldable[F[_]] {
-    def foldRight[A,B](as: F[A])(z: B)(f: (A,B) => B): B
-    def foldLeft[A,B](as: F[A])(z: B)(f: (B,A) => B): B
-    def foldMap[A,B](as: F[A])(f: A => B)(mb: Monoid[B]): B
-    def concatenate[A](as: F[A])(m: Monoid[A]): A =
-      foldLeft(as)(m.zero)(m.op)
-
-    def toList[A](fa: F[A]): List[A] =
-      foldRight(fa)(List.empty[A])(_ :: _)
-  }
-
   def productMonoid[A,B](A: Monoid[A], B: Monoid[B]): Monoid[(A,B)] = new Monoid[(A, B)] {
     override def op(a1: (A, B), a2: (A, B)): (A, B) = (A.op(a1._1, a2._1), B.op(a1._2, a2._2))
 
@@ -137,4 +126,15 @@ object Monoids {
 
   def bag[A](as: IndexedSeq[A]): Map[A, Int] =
     foldMapV(as, mapMergeMonoid[A, Int](intAddition))((a: A) => Map(a -> 1))
+}
+
+trait Foldable[F[_]] {
+  def foldRight[A,B](as: F[A])(z: B)(f: (A,B) => B): B
+  def foldLeft[A,B](as: F[A])(z: B)(f: (B,A) => B): B
+  def foldMap[A,B](as: F[A])(f: A => B)(mb: Monoid[B]): B
+  def concatenate[A](as: F[A])(m: Monoid[A]): A =
+    foldLeft(as)(m.zero)(m.op)
+
+  def toList[A](fa: F[A]): List[A] =
+    foldRight(fa)(List.empty[A])(_ :: _)
 }

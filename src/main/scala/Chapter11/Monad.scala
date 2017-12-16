@@ -1,5 +1,6 @@
 package Chapter11
 
+import Chapter12.Applicative
 import Chapter6.State
 
 trait Functor[F[_]] {
@@ -22,24 +23,12 @@ object Funtors {
 
 }
 
-trait Monad[F[_]] extends Functor[F] {
+trait Monad[F[_]] extends Applicative[F] {
   def unit[A](a: A): F[A]
   def flatMap[A, B](ma: F[A])(f: A => F[B]): F[B]
 
-  override def map[A, B](ma: F[A])(f: A => B): F[B] =
-    flatMap(ma)(a => unit(f(a)))
-
   def map2[A, B, C](ma: F[A], mb: F[B])(f: (A, B) => C): F[C] =
     flatMap(ma)(a => map(mb)(b => f(a, b)))
-
-  def sequence[A](lma: List[F[A]]): F[List[A]] =
-    lma.foldRight(unit(List.empty[A]))((ma, mla) => map2(ma, mla)(_ :: _))
-
-  def traverse[A,B](la: List[A])(f: A => F[B]): F[List[B]] =
-    la.foldRight(unit(List.empty[B]))((a, mla) => map2(f(a), mla)(_ :: _))
-
-  def replicateM[A](n: Int, ma: F[A]): F[List[A]] =
-    sequence(List.fill(n)(ma))
 
   def filterM[A](ms: List[A])(f: A => F[Boolean]): F[List[A]] =
     ms match {
@@ -57,12 +46,6 @@ trait Monad[F[_]] extends Functor[F] {
 
   def join[A](mma: F[F[A]]): F[A] =
     flatMap(mma)(ma => ma)
-
-
-
-  object Laws {
-//    compose(compose(f, g), h) == compose(f, compose(g, h))
-  }
 }
 
 object Monads {
